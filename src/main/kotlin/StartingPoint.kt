@@ -24,55 +24,55 @@ fun main(args: Array<String>) {
 
 
     val tableBuilder: CreateTableRequest.Builder = CreateTableRequest.builder()
-        .attributeDefinitions(AttributeDefinition.builder()
-            .attributeType(ScalarAttributeType.S)
-            .attributeName("ids")
-            .build())
-        .keySchema(KeySchemaElement.builder()
-            .attributeName("ids")
-            .keyType(KeyType.HASH).build())
-        .provisionedThroughput { builder->
+            .attributeDefinitions(AttributeDefinition.builder()
+                    .attributeType(ScalarAttributeType.S)
+                    .attributeName("ids")
+                    .build())
+            .keySchema(KeySchemaElement.builder()
+                    .attributeName("ids")
+                    .keyType(KeyType.HASH).build())
+            .provisionedThroughput { builder ->
 
                 builder.readCapacityUnits(4)
                 builder.writeCapacityUnits(4)
             }
-        .tableName("records");
-
-
-
+            .tableName("records");
 
 
     val player1 = Player(id = "hola", name = "kiquetal", attributes = "attributes");
     val ddbEnhancedClient by lazy { DynamoDbEnhancedClient.builder().dynamoDbClient(dynamoDbClient).build()!! }
-   // createTableFromBean(Player::class.java,"MiPlayer",ddbEnhancedClient)
-    saveUser(ddbEnhancedClient,player1)
-    saveUser(ddbEnhancedClient, Player("aaaaaaa","la","nada"))
-   // obtainUser(ddbEnhancedClient,player1)
+    // createTableFromBean(Player::class.java,"MiPlayer",ddbEnhancedClient)
+    saveUser(ddbEnhancedClient, player1)
+    saveUser(ddbEnhancedClient, Player("aaaaaaa", "la", "nada"))
+    // obtainUser(ddbEnhancedClient,player1)
     print(player1._dam)
     scan(dynamoDbClient)
 
 }
-fun scan(db:DynamoDbClient){
 
-    val scanResponse = db.scan(Consumer { t ->t.tableName("MiPlayer")
-                t.limit(10)})
+fun scan(db: DynamoDbClient) {
+
+    val scanResponse = db.scan(Consumer { t ->
+        t.tableName("MiPlayer")
+        t.limit(10)
+    })
 
     scanResponse.items().map {
-      print(" " + it.get("id") + "\n")
+        print(" " + it.get("id") + "\n")
     }
 }
-fun obtainUser(db:DynamoDbEnhancedClient,player: Player)
-{
+
+fun obtainUser(db: DynamoDbEnhancedClient, player: Player) {
     val custTable: DynamoDbTable<Player> = db.table("MiPlayer", TableSchema.fromBean(Player::class.java))
 
     val key = Key.builder()
             .partitionValue(player.id)
             .build()
-    val p=custTable.getItem{ k-> k.key(key)}
+    val p = custTable.getItem { k -> k.key(key) }
     println(p.id + p.name);
 }
-fun saveUser(db: DynamoDbEnhancedClient,player: Player)
-{
+
+fun saveUser(db: DynamoDbEnhancedClient, player: Player) {
 
     // Create a DynamoDbTable object
     val custTable: DynamoDbTable<Player> = db.table("MiPlayer", TableSchema.fromBean(Player::class.java))
@@ -102,8 +102,8 @@ fun checkTable(db: DynamoDbClient, tableName: String) {
 
 }
 
-fun createTableFromBean(any: Any , tableName: String, db: DynamoDbEnhancedClient) {
-   return db.table(tableName, TableSchema.fromBean(Player::class.java)).createTable()
+fun createTableFromBean(any: Any, tableName: String, db: DynamoDbEnhancedClient) {
+    return db.table(tableName, TableSchema.fromBean(any::class.java)).createTable()
 
 
 }
